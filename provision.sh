@@ -1,13 +1,23 @@
 #!/bin/bash
 
-# Switch to root user (might not be necessary)
 
-echo "================================="
-echo "   Updating system packages"
-echo "================================="
+# Check if docker is installed on system
 
-echo "=============================================================="
-echo "  Update the package index and install required dependencies "                                                                                                              echo "==============================================================="
+systemctl is-active --quiet docker && echo docker is running
+
+# if [systemctl status docker == 1];
+#   echo "docker is installed"
+# fi
+
+
+# STATUS="$(systemctl is-active tomcat.service)"
+# if [ "${STATUS}" = "active" ]; then
+#     echo "Execute your tasks ....."
+# else 
+#     echo " Service not running.... so exiting "  
+#     exit 1  
+# fi
+
 
 sudo apt update
 sudo apt install ca-certificates curl gnupg lsb-release -y
@@ -33,3 +43,21 @@ usermod -aG docker ubuntu
   # Enable and start Docker
     systemctl enable docker
     systemctl start docker
+
+# Mount the EBS Volume on the EC2 instance
+
+# Format the volume with an ext4 filesystem
+sudo mkfs -t ext4 /dev/xvdf
+
+sudo cp -r /mysql-data  /tmp/mysql-data-backup
+
+
+mount the mysql-data to the ebs volume
+sudo mount /dev/xvdf /mnt/mysql-data
+
+
+#Set correct ownership/permissions on the mount point so Docker can write to it
+sudo chmod 777 /dev/xvdf
+
+
+
