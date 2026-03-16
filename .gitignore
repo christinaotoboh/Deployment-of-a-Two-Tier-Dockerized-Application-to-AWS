@@ -5,3 +5,5 @@
 .viminfo
 .bash_logout
 .gitconfig
+.env
+
