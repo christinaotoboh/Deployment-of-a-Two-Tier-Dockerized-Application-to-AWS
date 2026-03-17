@@ -1,18 +1,37 @@
 #!/bin/bash
+DB_CONTAINER="mysql"
+S3_BUCKET="https://us-east-1.console.aws.amazon.com/s3/buckets?region=us-east-1"
 
-BACKUP_SOURCE="/some/path/on/your/host/all-databases.sql"
-BACKUP_DEST="$HOME/backups" # S3 bucket link
+#Create timestamp for unique file names
 DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_ZIP="mysql-backup-${DATE}.sql.gz" 
 
-# Validate source
-if [ ! -d "$BACKUP_SOURCE" ]; then
-    print_error "Source directory not found: $BACKUP_SOURCE"
+# Temporary local path to store the backup before upload
+TEMP_DIR="/tmp"
+FULL_BACKUP_PATH="$TEMP_DIR/$BACKUP_ZIP"
+
+echo "Starting MySQL database backup for $MYSQL_DATABASE in container $DB_CONTAINER..."
+
+
+# Execute mysqldump inside the Docker container and pipe to gzip on the host
+docker exec "$DB_CONTAINER" sh -c "exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE" | gzip > "$FULL_BACKUP_PATH"
+
+if [[ $? == 0 ]]; then
+    echo "Database dump created successfully: $FULL_BACKUP_PATH"
+else
+    echo "Error creating database dump. Exiting."
     exit 1
 fi
 
 
-BACKUP_PATH="$BACKUP_DEST/$BACKUP_NAME"
+# Use the AWS CLI to copy the file to S3
+/usr/bin/aws s3 cp "$FULL_BACKUP_PATH" s3://"$S3_BUCKET"/"$BACKUP_ZIP"
 
- docker exec some-mysql sh -c 'exec mysqldump --all-databases -uroot -p"$MYSQL_ROOT_PASSWORD"' > /some/path/on/your/host/all-databases.sql # Replace the path with the S3bucket link
+if [[ $? == 0 ]]; then
+    echo "Successfully uploaded to S3."
+    # Optional: Remove the local backup file after successful upload
+    rm "$FULL_BACKUP_PATH"
+    echo "Removed local backup file."
+fi
 
- echo " backup successful to the ${BACKUP_PATH}"
+echo "Backup process completed."
