@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   db:
     image: mysql:latest
@@ -9,16 +7,15 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    volume: /mnt/mysql-data
-
+    volumes:
+      - /mnt/ebs/mysql-data:/var/lib/mysql
   wordpress:
     depends_on:
       - db
     image: wordpress:latest
     ports:
-      - "80:8080"
-    volumes:
-      -./mnt/mysql-data:/var/lib/mysql
+      - "80:80"
+    
     restart: unless-stopped
     environment:
       WORDPRESS_DB_HOST: db:3306                                                  
