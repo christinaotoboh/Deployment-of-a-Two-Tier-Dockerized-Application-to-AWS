@@ -35,7 +35,8 @@ echo \
 
 #Install the Docker Engine packages
 sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin -y
+sudo apt-get install -y docker-compose-plugin
 
 # Add dcoker user to docker group (so no sudo needed)
 usermod -aG docker ubuntu
@@ -58,6 +59,14 @@ sudo mount /dev/xvdf /mnt/mysql-data
 
 #Set correct ownership/permissions on the mount point so Docker can write to it
 sudo chmod 777 /dev/xvdf
+
+# Install AWS Cli
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o"awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws configure #Figure out how to automate 
+
 
 
 

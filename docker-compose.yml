@@ -1,23 +1,33 @@
-version: "3.4"
+version: "3"
 
 services:
   db:
-    image: mysql
-    restart: always
+    image: mysql:latest
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volume: /mnt/mysql-data
+
   wordpress:
     depends_on:
       - db
-    image: wordpress
+    image: wordpress:latest
     ports:
-      - "8000:80"
-    restart: always
+      - "80:8080"
+    volumes:
+      -./mnt/mysql-data:/var/lib/mysql
+    restart: unless-stopped
     environment:
-      WORDPRESS_DB_HOST: db                                                  
+      WORDPRESS_DB_HOST: db:3306                                                  
       WORDPRESS_DB_USER: ${MYSQL_USER}                                       
       WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}                                      
-      WORDPRESS_DB_NAME: ${MYSQL_DATABASE} 
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+
+  redis-wp:
+    image: redis:latest
+    restart: unless-stopped
+networks:
+  default: {}
