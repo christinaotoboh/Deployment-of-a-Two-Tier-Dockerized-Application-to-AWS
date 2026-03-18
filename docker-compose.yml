@@ -22,9 +22,5 @@ services:
       WORDPRESS_DB_USER: ${MYSQL_USER}                                       
       WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}                                      
       WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
-
-  redis-wp:
-    image: redis:latest
-    restart: unless-stopped
 networks:
   default: {}
