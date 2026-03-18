@@ -84,9 +84,9 @@ else
   #Create a mount point where the EBS Volume will appear
   sudo mkdir -p /mnt/ebs
 
-  #Mount the volume to the mount point (Folder)
+  #Mount the volume to the mount point (Folder), add the fstan to make the mount permanent (survives reboots)
   sudo mount /dev/nvme1n1 /mnt/ebs
-echo "VOlume mounted to the mount point"
+  echo '/dev/nvme1n1 /mnt/ebs ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
 fi
 
 
@@ -94,7 +94,7 @@ fi
 # Create a folder on the mounted EBS volume for mysql to write to
 sudo mkdir -p /mnt/ebs/mysql-data
 
-# mysql runs as a user with UID:999, grant it ownership to the volume directory so that it can write into it
+# mysql runs as a user with UID:999,  grant it ownership to the volume directory so that it can write into it
 sudo chown -R 999:999 /mnt/ebs/mysql-data
 
 echo "Provisoning Script completed!"

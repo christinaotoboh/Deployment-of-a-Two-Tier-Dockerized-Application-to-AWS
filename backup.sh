@@ -23,11 +23,23 @@ BACKUP_FILE="mysql-backup-${TIMESTAMP}.sql.gz"
 TEMP_DIR="/tmp"
 FULL_BACKUP_PATH="$TEMP_DIR/$BACKUP_FILE"
 
+
+
 # Run the docker exec to run the mysql dump
+echo "================================================="
+echo "Taking the mysql backup locally"
+echo "================================================"
+
+if 
 docker exec "$DB_CONTAINER" sh -c \
  "exec mysqldump \
  --single-transaction --set-gtid-purged=OFF  --no-tablespaces  \
- -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE" | gzip > "$FULL_BACKUP_PATH"
+ -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE" | gzip > "$FULL_BACKUP_PATH"; then
+ echo "Dump taken successfully"
+else
+echo "Dump not successful"
+exit 1
+fi
 
  
 # Upload to s3 bucket
@@ -36,6 +48,23 @@ docker exec "$DB_CONTAINER" sh -c \
 echo "================================================"
 echo                "Uploading to s3 bucket"
 echo "================================================"
-aws s3 sync "$FULL_BACKUP_PATH" "$S3_BUCKET"
 
-aws s3 cp "$FULL_BACKUP_PATH" "$S3_BUCKET/"
+if aws s3 cp "$FULL_BACKUP_PATH" "$S3_BUCKET/"; then
+echo "Upload to s3 was completed succesfully"
+
+#Confirm if the backup file is in s3 bucket
+    if aws s3 ls "$S3_BUCKET/$BACKUP_FILE" &>/dev/null; then
+        echo "$BACKUP_FILE is in $S3_BUCKET"
+    else
+        echo "Upload seemed to succeed but file not found in bucket"
+        exit 1
+    fi    
+else 
+  echo "Upload FAILED"
+    exit 1
+fi
+
+
+echo "=================================================="
+echo " Upload completed"
+echo "=================================================="
