@@ -8,7 +8,7 @@ echo "============================================================"
 # Status of docker on the server
 
 if  command -v docker &>/dev/null || sudo systemctl is-active --quiet docker; then
-  echo "docker $(docker --version) is installed and running", skip docker installation
+  echo "docker $(docker --version) is installed and running. Skip docker installation"
 else
   echo "Docker is not installed, installing docker ................"
   
@@ -44,11 +44,29 @@ fi
 # Install aws cli
 
 echo "============================================"
-acho "Installing aws cli"
+echo "Installing aws cli"
 echo "============================================"
-sudo apt install awscli -y
 
+if command -v aws &>/dev/null; then
+  echo "aws CLI $(aws --version) is installed"
+else
 
+  # Download the official AWS CLI v2 installer. I am using Ubuntu
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+
+  # Unzip it
+  sudo apt install unzip -y
+  unzip /tmp/awscliv2.zip -d /tmp
+
+  # Run the installer
+  sudo /tmp/aws/install
+
+  # Verify installation
+  aws --version
+
+  # Cleanup
+  rm -rf /tmp/awscliv2.zip /tmp/aws
+fi
 
 # Format the EBS volume and make it a filesystem 
 echo "==========================================="
